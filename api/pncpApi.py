@@ -1,5 +1,5 @@
 import spacy
-import pt_core_news_sm
+import pt_core_news_lg
 import requests
 import json
 from datetime import datetime, date
@@ -33,41 +33,35 @@ def main():
                 data_atualizacao = datetime.fromisoformat(item["dataAtualizacao"]) if item.get("dataAtualizacao") else None
                 data_desejada = date.fromisoformat(item["dataDesejada"]) if item.get("dataDesejada") else None
 
-                # Criação do objeto PcaItem com todos os parâmetros
-                pca_item = PcaItem(
-                    descricao_item=item.get("descricaoItem"),
-                    nome_classificacao_catalogo=item.get("nomeClassificacaoCatalogo"),
-                    quantidade_estimada=item.get("quantidadeEstimada", 0),
-                    pdm_codigo=item.get("pdmCodigo"),
-                    data_inclusao=data_inclusao,
-                    numero_item=item.get("numeroItem", 0),
-                    data_atualizacao=data_atualizacao,
-                    valor_total=item.get("valorTotal", 0),
-                    pdm_descricao=item.get("pdmDescricao"),
-                    codigo_item=item.get("codigoItem"),
-                    unidade_requisitante=item.get("unidadeRequisitante"),
-                    grupo_contratacao_codigo=item.get("grupoContratacaoCodigo"),
-                    grupo_contratacao_nome=item.get("grupoContratacaoNome"),
-                    classificacao_superior_codigo=item.get("classificacaoSuperiorCodigo"),
-                    classificacao_superior_nome=item.get("classificacaoSuperiorNome"),
-                    unidade_fornecimento=item.get("unidadeFornecimento"),
-                    valor_unitario=item.get("valorUnitario", 0),
-                    valor_orcamento_exercicio=item.get("valorOrcamentoExercicio", 0),
-                    data_desejada=data_desejada,
-                    categoria_item_pca_nome=item.get("categoriaItemPcaNome"),
-                    classificacao_catalogo_id=item.get("classificacaoCatalogoId", 0),
-                    nomeUnidade=pca.get("nomeUnidade")
-                )
-
-                items_list.append(pca_item)
-
-                if item.get("descricaoItem"):
-                    print(
-                        f"Item: {item.get('descricaoItem')}, "
-                        f"Órgão: {item.get('unidadeRequisitante')}, "
-                        f"Nome Unidade: {pca.get('nomeUnidade')}"
+                # Criação do objeto PcaItem com todos os parâmetros se for Material
+                if (item.get("nomeClassificacaoCatalogo") == "Material"):
+                    pca_item = PcaItem(
+                        descricao_item=item.get("descricaoItem"),
+                        nome_classificacao_catalogo=item.get("nomeClassificacaoCatalogo"),
+                        quantidade_estimada=item.get("quantidadeEstimada", 0),
+                        pdm_codigo=item.get("pdmCodigo"),
+                        data_inclusao=data_inclusao,
+                        numero_item=item.get("numeroItem", 0),
+                        data_atualizacao=data_atualizacao,
+                        valor_total=item.get("valorTotal", 0),
+                        pdm_descricao=item.get("pdmDescricao"),
+                        codigo_item=item.get("codigoItem"),
+                        unidade_requisitante=item.get("unidadeRequisitante"),
+                        grupo_contratacao_codigo=item.get("grupoContratacaoCodigo"),
+                        grupo_contratacao_nome=item.get("grupoContratacaoNome"),
+                        classificacao_superior_codigo=item.get("classificacaoSuperiorCodigo"),
+                        classificacao_superior_nome=item.get("classificacaoSuperiorNome"),
+                        unidade_fornecimento=item.get("unidadeFornecimento"),
+                        valor_unitario=item.get("valorUnitario", 0),
+                        valor_orcamento_exercicio=item.get("valorOrcamentoExercicio", 0),
+                        data_desejada=data_desejada,
+                        categoria_item_pca_nome=item.get("categoriaItemPcaNome"),
+                        classificacao_catalogo_id=item.get("classificacaoCatalogoId", 0),
+                        nomeUnidade=pca.get("nomeUnidade")
                     )
+                    items_list.append(pca_item)
 
+        # Registra os itens resgatados no arquivo itens.json
         with open("itens.json", "w", encoding="utf-8") as f:
             json.dump(
                 [item.__dict__ for item in items_list],
@@ -92,23 +86,48 @@ def main():
     # a partir daqui tera a construção da matriz e operação de similaridade de todos com todos.
 
     # Carrega modelo spaCy para português
-    nlp = spacy.load("pt_core_news_sm")
-
+    nlp = spacy.load("pt_core_news_lg")
+    
     # Cria vetores de documentos baseados na descrição dos itens
     descricao = [item.descricao_item for item in items_list]
     itensNlp = [nlp(desc) for desc in descricao]
 
+    # Cria uma lista com os orgãos para fazer a similaridade de itens em diversos PCAs
+    orgaos = [item.nomeUnidade for item in items_list]
+    
     # Cria matriz de similaridade
+    # Cada entrada contém o índice, a descrição do documento e uma lista de similaridades
     matrizSimilaridade = []
-    for i, doc1 in enumerate(itensNlp):
-        linha = []
-        for j, doc2 in enumerate(itensNlp):
-            similaridade = doc1.similarity(doc2)
-            linha.append(similaridade)
+    
+    for i, desc1 in enumerate(itensNlp):
+        
+        #cria a variavel que recebe a string que vai aplicar a similaridade e reseta toda vez que mudar a linha
+        linha = {
+            "titulo"
+            "linha": i,
+            "descricao": descricao[i],
+            "orgao": orgaos[i],
+            "similaridades": []
+        }
+        
+        for j, desc2 in enumerate(itensNlp):
+            # Verifica se os orgãos são distintos
+            if (orgaos[i] != orgaos[j]):
+                # converte para float para garantir JSON serializável
+                similaridade = float(desc1.similarity(desc2))
+                linha["similaridades"].append({
+                    "Coluna": j,
+                    "descricao": descricao[j],
+                    "orgao": orgaos[j],
+                    "similaridade": similaridade
+                })
         matrizSimilaridade.append(linha)
-    print("Matriz de Similaridade Calculada:")
-    for linha in matrizSimilaridade:
-        print(linha)
+
+    # Salva a matriz em formato JSON num arquivo legível
+    with open("matriz_Similaridade.json", "w", encoding="utf-8") as f:
+        json.dump(matrizSimilaridade, f, ensure_ascii=False, indent=2)
+
+    print("Matriz de Similaridade Calculada e salva no arquivo: matriz_Similaridade.json")
 
 if __name__ == "__main__":
     main()
