@@ -1,4 +1,4 @@
-"# compraMatch" 
+# ComprasMatch 
 
 intalar as dependencias
 - Requests
@@ -11,3 +11,6 @@ pip install spacy
 
 e instalar a o pacote para tratar de lingua portuguesa com precisão
 python -m spacy download pt_core_news_lg
+
+"# API dos PNCP"
+https://pncp.gov.br/api/consulta/swagger-ui/index.html#/Plano%20de%20Contrata%C3%A7%C3%A3o/consultarItensPorAno
