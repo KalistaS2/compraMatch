@@ -1,9 +1,11 @@
-import spacy
-import pt_core_news_lg
 import requests
 import json
 from datetime import datetime, date
 from model.items import PcaItem
+import kagglehub
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+
 def main():
 
     # Create an empty list to store items
@@ -93,16 +95,21 @@ def main():
 
     # Ate aqui foi feito a gravação dos itens em cache e nos arquivos JSON.
     # a partir daqui tera a construção da matriz e operação de similaridade de todos com todos.
+    
+    # Authenticate
+    kagglehub.login() # This will prompt you for your credentials.
 
-    # Carrega modelo spaCy para português
-    nlp = spacy.load("pt_core_news_lg")
+    MODEL_PATH = kagglehub.model_download("google/embeddinggemma/transformers/embeddinggemma-300m")
+    model = SentenceTransformer(MODEL_PATH)
     
     # Cria vetores de documentos baseados na descrição dos itens
     descricao = []
     for item in items_list:
         if (item.descricao_item):
             descricao.append(item.descricao_item)
-    itensNlp = [nlp(desc) for desc in descricao]
+    
+    # Gera embeddings para todas as descrições
+    embeddings = model.encode(descricao, show_progress_bar=True)
 
     # Cria uma lista com os orgãos para fazer a similaridade de itens em diversos PCAs
     orgaos = [item.nomeUnidade for item in items_list]
@@ -111,7 +118,7 @@ def main():
     # Cada entrada contém o índice, a descrição do documento e uma lista de similaridades
     matrizSimilaridade = []
     
-    for i, desc1 in enumerate(itensNlp):
+    for i in range(len(embeddings)):
         
         #cria a variavel que recebe a string que vai aplicar a similaridade e reseta toda vez que mudar a linha
         linha = {
@@ -121,12 +128,12 @@ def main():
             "similaridades": []
         }
         
-        for j, desc2 in enumerate(itensNlp):
+        for j in range(len(embeddings)):
             # Verifica se os orgãos são distintos
-            if (orgaos[i] != orgaos[j]):
-                # converte para float para garantir JSON serializável
-                similaridade = float(desc1.similarity(desc2))
-                if (similaridade > 0.5):
+            if (orgaos[i] != orgaos[j] and descricao[i] != descricao[j]):
+                # Calcula similaridade de cosseno entre os embeddings
+                similaridade = float(model.similarity(embeddings[i], embeddings[j]))
+                if (similaridade > 0.9):
                     linha["similaridades"].append({
                         "Coluna": j,
                         "descricao": descricao[j],
@@ -137,7 +144,7 @@ def main():
             matrizSimilaridade.append(linha)
 
     # Salva a matriz em formato JSON num arquivo legível
-    with open("matriz_Similaridade.json", "w", encoding="utf-8") as f:
+    with open("matriz_Similaridade_90_porcento.json", "w", encoding="utf-8") as f:
         json.dump(matrizSimilaridade, f, ensure_ascii=False, indent=2)
 
     print("Matriz de Similaridade Calculada e salva no arquivo: matriz_Similaridade.json")
