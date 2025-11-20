@@ -4,7 +4,6 @@ from datetime import datetime, date
 from model.items import PcaItem
 import kagglehub
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
 
 def main():
 
