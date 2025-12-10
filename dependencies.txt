@@ -1,4 +1,4 @@
 requests
 sentence-transformers
-scikit-learn
 kagglehub
+networkx

@@ -5,9 +5,11 @@ import requests
 from model.items import PcaItem
 
 
-def request(anoPca="2024", max_items=1000, tamanhoPagina="90", url="", salvar_arquivo=False, minPagina=1, maxPagina=5):
+def request(anoPca="2024", max_items=1000, tamanhoPagina="90", url="", salvar_arquivo=True, minPagina=1, maxPagina=5):
     # Create an empty list to store items
     items_list = []
+    buffer = []
+    print("Iniciando requisição à API do PNCP...")
 
     for pagina in range(minPagina, maxPagina):
         for cod in range(1, 50):
@@ -60,24 +62,30 @@ def request(anoPca="2024", max_items=1000, tamanhoPagina="90", url="", salvar_ar
                                 nomeUnidade=pca.get("nomeUnidade")
                             )
                             items_list.append(pca_item)
+                            # mantenha um buffer para escrita em disco a cada 1000 itens
+                            buffer.append(pca_item)
 
                 if salvar_arquivo:
-                    # Registra os itens resgatados no arquivo itens.json
-                    with open("itens.json", "a", encoding="utf-8") as f:
-                        json.dump(
-                            [item.__dict__ for item in items_list],
-                            f,
-                            ensure_ascii=False,
-                            indent=2,
-                            default=str  # converte datetime/date para string
-                        )
-                        f.write("\n")
+                    # Escreve em disco em modo append quando o buffer atingir 1000 itens
+                    if len(buffer) >= 1000:
+                        with open("itens.json", "a", encoding="utf-8") as f:
+                            json.dump(
+                                [item.__dict__ for item in buffer],
+                                f,
+                                ensure_ascii=False,
+                                indent=2,
+                                default=str  # converte datetime/date para string
+                            )
+                            f.write("\n")
+                        print(f"✅ Gravados {len(buffer)} itens em itens.json (append). Limpeza do buffer.")
+                        buffer.clear()
 
-                    # Optionally, save to a local file (JSON)
+                    # Optionally, append raw API response for debugging
                     with open("pncp_response.json", "a", encoding="utf-8") as f:
                         json.dump(data, f, ensure_ascii=False, indent=4)
+                        f.write("\n")
 
-                    print("✅ Response saved to pncp_response.json")
+                    print("✅ Response appended to pncp_response.json")
 
                 print(f"Created {len(items_list)} PCA Items.")
             else:
@@ -85,8 +93,27 @@ def request(anoPca="2024", max_items=1000, tamanhoPagina="90", url="", salvar_ar
             if (len(items_list) >= max_items):
                 pagina = maxPagina + 1
                 break
+            else:
+                print(len(items_list), " items coletados ate o momento...")
         if (len(items_list) >= max_items):
             pagina = maxPagina + 1
             break
-        
+        else:
+            print(len(items_list), " items coletados ate o momento...")
+    
+    print("Requisição à API do PNCP concluída.")
+    # Ao final, grava qualquer item restante no buffer
+    if salvar_arquivo and len(buffer) > 0:
+        with open("itens.json", "a", encoding="utf-8") as f:
+            json.dump(
+                [item.__dict__ for item in buffer],
+                f,
+                ensure_ascii=False,
+                indent=2,
+                default=str
+            )
+            f.write("\n")
+        print(f"✅ Gravados {len(buffer)} itens restantes em itens.json (append).")
+        buffer.clear()
+
     return items_list
