@@ -35,11 +35,19 @@
             </div>
 
             <div class="itens-stats">
-                <p>Total de itens: <strong id="totalItens">0</strong></p>
+                <p>Total de itens: <strong id="totalItens">0</strong> | Mostrando <strong id="showingItems">0</strong></p>
             </div>
 
             <div id="itens-container" class="itens-list">
                 <!-- Itens serão preenchidos por JavaScript -->
+            </div>
+
+            <div class="pagination-container">
+                <button id="prevBtn" class="pagination-btn" disabled>← Anterior</button>
+                <span class="pagination-info">
+                    Página <strong id="currentPage">1</strong> de <strong id="totalPages">1</strong>
+                </span>
+                <button id="nextBtn" class="pagination-btn">Próxima →</button>
             </div>
         </section>
     </main>

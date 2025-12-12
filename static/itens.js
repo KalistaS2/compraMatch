@@ -2,6 +2,8 @@
 
 let allItens = [];
 let filteredItens = [];
+let currentPage = 1;
+const itemsPerPage = 12;
 
 async function loadItens() {
     try {
@@ -19,6 +21,7 @@ async function loadItens() {
         
         allItens = Array.from(uniqueMap.values());
         filteredItens = [...allItens];
+        currentPage = 1;
         
         populateOrgaoFilter();
         renderItens();
@@ -48,10 +51,16 @@ function renderItens() {
     
     if (filteredItens.length === 0) {
         container.innerHTML = '<p style="text-align: center; padding: 40px;">Nenhum item encontrado.</p>';
+        updatePagination();
         return;
     }
     
-    filteredItens.forEach(item => {
+    // Calcula índices para a página atual
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const itemsToShow = filteredItens.slice(startIndex, endIndex);
+    
+    itemsToShow.forEach(item => {
         const card = document.createElement('div');
         card.className = 'item-card';
         
@@ -75,6 +84,8 @@ function renderItens() {
         
         container.appendChild(card);
     });
+    
+    updatePagination();
 }
 
 function truncate(text, length) {
@@ -85,7 +96,24 @@ function truncate(text, length) {
 }
 
 function updateStats() {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredItens.length);
+    const showingItems = filteredItens.length === 0 ? 0 : endIndex - startIndex;
+    
     document.getElementById('totalItens').textContent = filteredItens.length;
+    document.getElementById('showingItems').textContent = showingItems;
+}
+
+function updatePagination() {
+    const totalPages = Math.ceil(filteredItens.length / itemsPerPage);
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    document.getElementById('currentPage').textContent = filteredItens.length === 0 ? 0 : currentPage;
+    document.getElementById('totalPages').textContent = totalPages;
+    
+    prevBtn.disabled = currentPage <= 1;
+    nextBtn.disabled = currentPage >= totalPages;
 }
 
 function filterItens() {
@@ -100,8 +128,28 @@ function filterItens() {
         return matchSearch && matchOrgao;
     });
     
+    currentPage = 1; // Reset para primeira página ao filtrar
     renderItens();
     updateStats();
+}
+
+function goToNextPage() {
+    const totalPages = Math.ceil(filteredItens.length / itemsPerPage);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderItens();
+        updateStats();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function goToPreviousPage() {
+    if (currentPage > 1) {
+        currentPage--;
+        renderItens();
+        updateStats();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // Event listeners
@@ -112,9 +160,13 @@ document.getElementById('resetFilters').addEventListener('click', () => {
     document.getElementById('searchInput').value = '';
     document.getElementById('filterOrg').value = '';
     filteredItens = [...allItens];
+    currentPage = 1;
     renderItens();
     updateStats();
 });
+
+document.getElementById('prevBtn').addEventListener('click', goToPreviousPage);
+document.getElementById('nextBtn').addEventListener('click', goToNextPage);
 
 // Carrega itens ao abrir página
 window.addEventListener('DOMContentLoaded', loadItens);

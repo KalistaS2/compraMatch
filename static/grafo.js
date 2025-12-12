@@ -6,6 +6,8 @@ let nodes = [];
 let links = [];
 let showDescription = false;
 let labels;
+let filtroDataInicio = null;
+let filtroDataFim = null;
 
 async function loadGraphData() {
     try {
@@ -15,12 +17,40 @@ async function loadGraphData() {
         nodes = data.nodes || [];
         links = data.edges || [];
         
+        inicializarFiltroData();
         renderGraph();
     } catch (error) {
         console.error('Erro ao carregar grafo:', error);
         document.getElementById('grafo-container').innerHTML = 
             '<p style="text-align: center; padding: 40px;">Erro ao carregar o grafo. Certifique-se de que o arquivo existe.</p>';
     }
+}
+
+function inicializarFiltroData() {
+    // Obtém data atual
+    const hoje = new Date();
+    const dataInicio = new Date(hoje);
+    dataInicio.setDate(dataInicio.getDate()); // Hoje
+    
+    // Data 6 meses à frente
+    const dataFim = new Date(hoje);
+    dataFim.setMonth(dataFim.getMonth() + 6);
+    
+    // Formata para yyyy-MM-dd
+    const formatarData = (date) => {
+        const ano = date.getFullYear();
+        const mes = String(date.getMonth() + 1).padStart(2, '0');
+        const dia = String(date.getDate()).padStart(2, '0');
+        return `${ano}-${mes}-${dia}`;
+    };
+    
+    // Define valores nos inputs
+    document.getElementById('dataInicio').value = formatarData(dataInicio);
+    document.getElementById('dataFim').value = formatarData(dataFim);
+    
+    // Armazena os valores
+    filtroDataInicio = dataInicio;
+    filtroDataFim = dataFim;
 }
 
 function getVibrantColor(index) {
@@ -208,6 +238,21 @@ document.getElementById('toggleLabels').addEventListener('click', function() {
         }
     });
     this.textContent = showDescription ? '🏷️ Mostrar Órgão' : '🏷️ Mostrar Descrição';
+});
+
+// Filtro de data
+document.getElementById('dataInicio').addEventListener('change', () => {
+    const dataInicio = document.getElementById('dataInicio').value;
+    filtroDataInicio = dataInicio ? new Date(dataInicio) : null;
+});
+
+document.getElementById('dataFim').addEventListener('change', () => {
+    const dataFim = document.getElementById('dataFim').value;
+    filtroDataFim = dataFim ? new Date(dataFim) : null;
+});
+
+document.getElementById('resetData').addEventListener('click', () => {
+    inicializarFiltroData();
 });
 
 // Carrega grafo ao abrir página

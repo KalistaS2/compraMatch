@@ -10,7 +10,6 @@ app = Flask(__name__, template_folder='../templates', static_folder='../static')
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ITENS_FILE = os.path.join(PROJECT_ROOT, 'itens.json')
 GRAFO_FILE = os.path.join(PROJECT_ROOT, 'grafo_Similaridade_90_porcento.gpickle')
-MATRIZ_FILE = os.path.join(PROJECT_ROOT, 'matriz_Similaridade_90_porcento.json')
 
 def load_items_from_json(path=ITENS_FILE):
     """Carrega itens do arquivo JSON."""

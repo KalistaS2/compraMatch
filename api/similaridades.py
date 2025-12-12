@@ -157,17 +157,20 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
     model = SentenceTransformer(MODEL_PATH)
     print("modelo carregado.")
 
-    # Recolhe descrições, órgãos e índice original para mapear nós
+    # Recolhe descrições, órgãos, datas e índice original para mapear nós
     descricao = []
     orgaos = []
+    datas = []
     original_idx = []
     for idx, item in enumerate(items_list):
         # suporta dicts e objetos
         desc = item.get('descricao_item') if isinstance(item, dict) else getattr(item, 'descricao_item', None)
         org = item.get('nomeUnidade') if isinstance(item, dict) else getattr(item, 'nomeUnidade', None)
+        data = item.get('data_desejada') if isinstance(item, dict) else getattr(item, 'data_desejada', None)
         if desc:
             descricao.append(desc)
             orgaos.append(org)
+            datas.append(data)
             original_idx.append(idx)
     print(f"Total de itens com descrição: {len(descricao)}")
 
@@ -185,7 +188,7 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
     if _HAS_NETWORKX:
         G = nx.Graph()
         for i in range(len(descricao)):
-            G.add_node(original_idx[i], descricao=descricao[i], orgao=orgaos[i], idx_in_list=i)
+            G.add_node(original_idx[i], descricao=descricao[i], orgao=orgaos[i], data=datas[i], idx_in_list=i)
     else:
         G = {"nodes": [], "edges": []}
         for i in range(len(descricao)):
@@ -193,6 +196,7 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
                 "id": original_idx[i],
                 "descricao": descricao[i],
                 "orgao": orgaos[i],
+                "data": datas[i],
                 "idx_in_list": i
             })
     print("nós adicionados ao grafo.")
