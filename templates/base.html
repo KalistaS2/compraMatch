@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ComprasMatch{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+            <div class="nav-brand">
+                <h1>ComprasMatch</h1>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-content">
+            <div class="sidebar-header">
+                <h2>Menu</h2>
+                <button class="sidebar-close" id="sidebarClose">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item {% if request.path == '/' %}active{% endif %}">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-label">Home</span>
+                </a>
+                <a href="/grafo" class="nav-item {% if request.path == '/grafo' %}active{% endif %}">
+                    <span class="nav-icon">🕸️</span>
+                    <span class="nav-label">Grafo</span>
+                </a>
+                <a href="/itens" class="nav-item {% if request.path == '/itens' %}active{% endif %}">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-label">Itens</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- Overlay para fechar sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Conteúdo principal -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 ComprasMatch. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='sidebar.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

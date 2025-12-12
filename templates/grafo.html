@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComprasMatch - Grafo de Similaridade</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>ComprasMatch</h1>
+                <p class="subtitle">Economia compartilhado junto com outras organizações</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/">Home</a></li>
+                <li><a href="/grafo" class="active">Grafo</a></li>
+                <li><a href="/itens">Itens</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="grafo-section">
+            <h2>Grafo de Similaridade</h2>
+            <p class="subtitle-grafo">Visualize as conexões entre itens baseadas em similaridade. Quanto mais próximos, mais similares</p>
+            
+            <div class="grafo-controls">
+                <button id="zoomIn" class="btn">🔍+ Zoom</button>
+                <button id="zoomOut" class="btn">🔍- Zoom</button>
+                <button id="resetZoom" class="btn">↺ Reset</button>
+                <button id="toggleLabels" class="btn">🏷️ Mostrar Descrição</button>
+            </div>
+
+            <div id="grafo-container" class="grafo-container"></div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 ComprasMatch. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='grafo.js') }}"></script>
+</body>
+</html>

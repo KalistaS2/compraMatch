@@ -202,8 +202,8 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
     for i in range(len(embeddings)):
         print(f"Processando nó {i+1} de {len(embeddings)}...")
         for j in range(i + 1, len(embeddings)):
-            # Verifica se os órgãos são distintos e descrições não são idênticas
-            if (orgaos[i] != orgaos[j] and descricao[i] != descricao[j]):
+            # Verifica se os órgãos são distintos
+            if (orgaos[i] != orgaos[j]):
                 similaridade = float(model.similarity(embeddings[i], embeddings[j]))
                 if (similaridade > similaridade_min):
                     if _HAS_NETWORKX:
@@ -224,8 +224,20 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
         if _HAS_NETWORKX:
             # Salva como gpickle por ser simples e preservar atributos
             path = arquivo_saida if arquivo_saida.endswith('.gpickle') else arquivo_saida + '.gpickle'
-            nx.write_gpickle(G, path)
-            print(f"Grafo salvo em: {path} (formato: gpickle)")
+            # Compatibilidade com várias versões do networkx:
+            try:
+                # networkx <= 2.x may expose write_gpickle at top-level
+                if hasattr(nx, 'write_gpickle'):
+                    nx.write_gpickle(G, path)
+                else:
+                    # newer networkx exposes gpickle under readwrite
+                    nx.readwrite.gpickle.write_gpickle(G, path)
+                print(f"Grafo salvo em: {path} (formato: gpickle)")
+            except Exception:
+                # Fallback simples: gravar com pickle (compatível para carregamento local)
+                with open(path, 'wb') as f:
+                    pickle.dump(G, f)
+                print(f"Grafo salvo em: {path} usando pickle como fallback")
         else:
             # Salva estrutura alternativa em JSON
             path = arquivo_saida if arquivo_saida.endswith('.json') else arquivo_saida + '.json'

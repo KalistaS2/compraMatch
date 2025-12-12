@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComprasMatch - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <h1>ComprasMatch</h1>
+                <p class="subtitle">Economia compartilhado junto com outras organizações</p>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/grafo">Grafo</a></li>
+                <li><a href="/itens">Itens</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero">
+            <h2>Compras Compartilhadas</h2>
+            <p>Economize compartilhando junto com outras organizações</p>
+        </section>
+
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_usuarios }}</h3>
+                    <p class="stat-label">Total Usuários</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_compras_ativas }}</h3>
+                    <p class="stat-label">Compras Ativas</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_itens_json }}</h3>
+                    <p class="stat-label">Itens Cadastrados</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">🔗</div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_itens_grafo }}</h3>
+                    <p class="stat-label">Itens no Grafo</p>
+                    <span class="stat-change">Conexões ativas</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="ativas">
+            <h3>Compras Ativas</h3>
+            <div id="active-purchases" class="active-purchases">
+                <!-- Carregado dinamicamente via JavaScript -->
+            </div>
+        </section>
+        <script>
+            // Carrega compras ativas do backend
+            fetch('/api/top-items')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('active-purchases');
+                    container.innerHTML = '';
+                    (data.items || []).slice(0, 5).forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'purchase-item';
+                        div.innerHTML = `
+                            <span class="purchase-icon">📦</span>
+                            <div class="purchase-info">
+                                <h4>${item.nomeUnidade || 'Sem órgão'}</h4>
+                                <p>${item.descricao_item ? item.descricao_item.substring(0, 60) : 'Sem descrição'}...</p>
+                            </div>
+                            <span class="count">${item.quantidade_estimada || 0}</span>
+                        `;
+                        container.appendChild(div);
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar compras:', error));
+        </script>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 ComprasMatch. Todos os direitos reservados.</p>
+    </footer>
+</body>
+</html>
