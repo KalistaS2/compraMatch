@@ -70,6 +70,23 @@ main.container {
     align-items: center;
 }
 
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-logo {
+    height: 75px;
+    width: auto;
+    object-fit: contain;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
 .nav-brand h1 {
     font-size: 28px;
     margin-bottom: 5px;
