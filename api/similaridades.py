@@ -203,6 +203,7 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
     
     # Calcula similaridades e adiciona arestas (somente uma vez por par i<j)
     print("adicionando arestas ao grafo...")
+    contador = 0
     for i in range(len(embeddings)):
         print(f"Processando nó {i+1} de {len(embeddings)}...")
         for j in range(i + 1, len(embeddings)):
@@ -210,6 +211,7 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
             if (orgaos[i] != orgaos[j]):
                 similaridade = float(model.similarity(embeddings[i], embeddings[j]))
                 if (similaridade > similaridade_min):
+                    contador += 2
                     if _HAS_NETWORKX:
                         G.add_edge(original_idx[i], original_idx[j], weight=similaridade)
                     else:
@@ -249,4 +251,5 @@ def similaridadesGrafo(items_list, similaridade_min, salvar_arquivo=False, arqui
                 json.dump(G, f, ensure_ascii=False, indent=2)
             print(f"Grafo (representação JSON) salvo em: {path}")
 
-    return G
+    print(f"Total de arestas: {contador // 2}, Contador: {contador}")
+    return contador

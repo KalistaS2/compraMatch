@@ -18,7 +18,7 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="/" class="active">Home</a></li>
-                <li><a href="/grafo">Grafo</a></li>
+                <li><a href="/grafo">Radar de Oportunidades</a></li>
                 <li><a href="/itens">Itens</a></li>
             </ul>
         </div>
@@ -42,8 +42,8 @@
             <div class="stat-card">
                 <div class="stat-icon">🛒</div>
                 <div class="stat-content">
-                    <h3 class="stat-number">{{ total_compras_ativas }}</h3>
-                    <p class="stat-label">Compras Ativas</p>
+                    <h3 class="stat-number">15</h3>
+                    <p class="stat-label">Oportunidades Indentificadas</p>
                 </div>
             </div>
 
@@ -58,20 +58,50 @@
             <div class="stat-card">
                 <div class="stat-icon">🔗</div>
                 <div class="stat-content">
-                    <h3 class="stat-number">{{ total_itens_grafo }}</h3>
-                    <p class="stat-label">Itens no Grafo</p>
-                    <span class="stat-change">Conexões ativas</span>
+                    <h3 class="stat-number" id="conexoes-count">0</h3>
+                    <p class="stat-label">Conexões no Grafo</p>
+                    <span class="stat-change">Arestas ativas</span>
                 </div>
             </div>
         </section>
 
         <section class="ativas">
-            <h3>Compras Ativas</h3>
+            <h3>Oportunidades Indentificadas</h3>
             <div id="active-purchases" class="active-purchases">
                 <!-- Carregado dinamicamente via JavaScript -->
             </div>
         </section>
     </main>
+
+    <!-- Modal para detalhes da compra -->
+    <div id="purchaseModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="fecharModal()">&times;</span>
+            <h2 id="modal-title">Detalhes da Compra</h2>
+            <div class="modal-body">
+                <div class="detail-field">
+                    <strong>Item:</strong>
+                    <p id="modal-item"></p>
+                </div>
+                <div class="detail-field">
+                    <strong>Órgão Responsável:</strong>
+                    <p id="modal-unidade"></p>
+                </div>
+                <div class="detail-field">
+                    <strong>Quantidade Estimada:</strong>
+                    <p id="modal-quantidade"></p>
+                </div>
+                <div class="detail-field">
+                    <strong>Órgãos Participantes:</strong>
+                    <div id="modal-orgaos" class="orgaos-list"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="ingressarCompra()" class="btn-ingressar">Ingressar</button>
+                <button onclick="fecharModal()" class="btn-fechar">Fechar</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="footer">
         <p>&copy; 2024 ComprasMatch. Todos os direitos reservados.</p>

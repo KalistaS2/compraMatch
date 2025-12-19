@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ComprasMatch - Grafo de Similaridade</title>
+    <title>ComprasMatch - Radar</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -19,7 +19,7 @@
             </div>
             <ul class="nav-menu">
                 <li><a href="/">Home</a></li>
-                <li><a href="/grafo" class="active">Grafo</a></li>
+                <li><a href="/grafo" class="active">Radar de Oportunidades</a></li>
                 <li><a href="/itens">Itens</a></li>
             </ul>
         </div>
@@ -35,6 +35,14 @@
                 <button id="zoomOut" class="btn">🔍- Zoom</button>
                 <button id="resetZoom" class="btn">↺ Reset</button>
                 <button id="toggleLabels" class="btn">🏷️ Mostrar Descrição</button>
+                <button id="fullscreenBtn" class="btn">👁️ Tela Cheia</button>
+                
+                <div class="filter-orgao">
+                    <label for="selectOrgao">Filtrar por Órgão:</label>
+                    <select id="selectOrgao" class="select-input">
+                        <option value="">Todos os órgãos</option>
+                    </select>
+                </div>
                 
                 <div class="date-filter">
                     <label for="dataInicio">Desde:</label>

@@ -1,30 +1,38 @@
 # ComprasMatch
 
-intalar as dependencias
+Sistema para análise de similaridade de itens de compras públicas do PNCP (Portal Nacional de Contratações Públicas).
 
-- Requests
-  utilizado para fazer as requisições da Api
-  pip intsall requests
+## Funcionalidades
 
-- SpaCy (Descontinuado devido a fazer a similaridade apenas semantica)
-  utilizado para fazer tratamento de NLP e calculo de similaridade
-  pip install spacy
+- Busca de itens da API do PNCP
+- Cálculo de similaridade entre itens usando embeddings (EmbeddingGemma)
+- Visualização de grafos de similaridade
+- Interface web para navegação de itens e similaridades
 
-- EmbeddingGemma
-  utilizado para criar os embeddings e fazer o calculo de similaridade
-  !pip install git+https://github.com/huggingface/transformers@v4.56.0-Embedding-Gemma-preview
+## Como Rodar
 
-e instalar a o pacote para tratar de lingua portuguesa com precisão
-python -m spacy download pt_core_news_lg
+1. Instale as dependências: `pip install -r requirements.txt`
+2. Configure o Kaggle API: Baixe o arquivo kaggle.json do seu perfil no Kaggle e coloque na raiz do projeto.
+3. Execute `python api/tools.py` Para importar os dados (necessario para a aplicação)
+4. Execute: `python run.py` Para iniciar a aplicação
 
-"# API dos PNCP"
+## Dependências
+
+- requests: Para requisições à API
+- sentence-transformers: Para embeddings
+- kagglehub: Para acesso ao modelo EmbeddingGemma
+- networkx: Para grafos
+- flask: Framework web
+- scikit-learn: Para cálculos de similaridade
+
+## API do PNCP
+
 https://pncp.gov.br/api/consulta/swagger-ui/index.html#/Plano%20de%20Contrata%C3%A7%C3%A3o/consultarItensPorAno
 
-# versionamento - 0.1
+## Versão
 
-utilização do modelo EmbeddingGemma via biblioteca _kagglehub_ para fazer os os embenddings e o calculo de similaridade
+0.1
 
-- Nota:
-  precisa ter conta autenticada no kaggle para autenticar no codigo, site para criar a conta e aceitar os termos para ter acesso ao EmbeddingGemma acessar o link: https://www.kaggle.com/models/google/embeddinggemma, apos criar a conta e aceitar os termos, ir em account e gerar um API token, isso vai baixar um arquivo com o seu user e token que serão utilizados na aplicação
+## Notas
 
-a biblioteca SpaCy se mostrou ineficiente devido a fazer a similaridade apenas semantica
+- Necessário conta no Kaggle autenticada para acessar o EmbeddingGemma.
