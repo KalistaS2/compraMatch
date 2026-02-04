@@ -31,13 +31,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare site folder
+        run: |
+          mkdir -p site
+          # copy index.html to site root
+          if [ -f index.html ]; then cp index.html site/; fi
+          # copy local asset folders if present
+          for d in index static; do
+            if [ -d "$d" ]; then cp -r "$d" "site/$d"; fi
+          done
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          # Upload only the prepared site folder so index.html is at root
+          path: 'site'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
