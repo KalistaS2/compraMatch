@@ -5,3 +5,7 @@ api/pncpApi.py
 itens.json
 pncp_response.json
 kaggle.json
+*.pcy
+*.pyc
+*.json
+*.gpickle
