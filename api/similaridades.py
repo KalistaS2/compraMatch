@@ -84,11 +84,13 @@ def similaridades(items_source, similaridade_min, salvar_json=False):
 
     # Gera embeddings para todas as descrições
     embeddings = model.encode(descricao, show_progress_bar=True)
+    print("Embeddings gerados.")
     
     # Cria matriz de similaridade
     matrizSimilaridade = []
     
     for i in range(len(embeddings)):
+        print(f"Processando item {i+1} de {len(embeddings)}...")
         linha = {
             "linha": i,
             "descricao": descricao[i],

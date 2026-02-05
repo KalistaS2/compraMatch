@@ -6,3 +6,4 @@ itens.json
 pncp_response.json
 kaggle.json
 *.pyc
+*.json
