@@ -1,97 +1,86 @@
-"""
-Módulo de cálculo de similaridades para a baseline sintética.
-Utiliza o modelo de embeddings para calcular similaridades entre itens.
-"""
-
-import sys
+import kagglehub
 import json
-from pathlib import Path
-
-# Adiciona o diretório api ao path para importar similaridades
-sys.path.insert(0, str(Path(__file__).parent.parent / "api"))
-
-from similaridades import similaridadesGrafo
+from sentence_transformers import SentenceTransformer
+from construcao import carregar_itens_complexos
 
 
-
-def calcular_similaridades_baseline(caminho_itens="itensSinteticos.json", 
-                                   similaridade_min=0.7, 
-                                   salvar_grafo=True):
+def similaridades_baseline(similaridade_min=0.7, salvar_json=True):
     """
-    Calcula as similaridades entre os itens sintéticos usando a função similaridadesGrafo.
-    
-    Args:
-        caminho_itens: caminho para o arquivo JSON com os itens
-        similaridade_min: limiar mínimo de similaridade (0-1)
-        salvar_grafo: se True, salva o grafo em arquivo
-        
-    Retorna:
-        tuple: (grafo, caminho_arquivo_grafo)
+    Calcula similaridades usando Gemma Embeddings. `items_source` pode ser:
+      - None => os itens serão carregados de itens_complexos.json usando carregar_itens_complexos()
+      - lista em memória (mantido para compatibilidade)
     """
-    print("=" * 60)
-    print("CÁLCULO DE SIMILARIDADES BASELINE")
-    print("=" * 60)
-    
-    # Resolve caminho absoluto
-    arquivo_itens = Path(__file__).parent / caminho_itens
-    
-    if not arquivo_itens.exists():
-        print(f"✗ Arquivo não encontrado: {arquivo_itens}")
-        print("Execute construcao.py primeiro para gerar os itens sintéticos.")
-        return None, None
-    
-    # Carrega itens do JSON
-    print(f"\nCarregando itens de: {arquivo_itens}")
-    with open(arquivo_itens, 'r', encoding='utf-8') as f:
-        itens = json.load(f)
-    
-    print(f"✓ {len(itens)} itens carregados")
-    
-    # Calcula similaridades usando o grafo
-    print(f"\nCalculando grafo de similaridades (limiar: {similaridade_min})...")
-    print("Isso pode levar alguns minutos dependendo da quantidade de itens...")
-    
-    try:
-        resultado = similaridadesGrafo(
-            items_list=itens,
-            similaridade_min=similaridade_min,
-            salvar_arquivo=salvar_grafo,
-            arquivo_saida=f"grafo_Similaridade_{int(similaridade_min * 100)}_porcento"
-        )
-        
-        print(f"\n✓ Grafo de similaridades calculado com sucesso!")
-        print(f"✓ Total de pares similares: {resultado // 2}")
-        
-        # Define caminho do grafo
-        arquivo_grafo = Path(__file__).parent / f"grafo_Similaridade_{int(similaridade_min * 100)}_porcento.gpickle"
-        
-        return resultado, str(arquivo_grafo)
-        
-    except Exception as e:
-        print(f"✗ Erro ao calcular similaridades: {e}")
-        import traceback
-        traceback.print_exc()
-        return None, None
+    # Se não for passado, carrega usando carregar_itens_complexos
+    items = carregar_itens_complexos()
 
+    if not items:
+        print("Nenhum item encontrado para processar")
+        return []
 
-def main():
-    """Função principal."""
-    resultado = calcular_similaridades_baseline(
-        caminho_itens="itensSinteticos.json",
-        similaridade_min=0.7,
-        salvar_grafo=True
-    )
+    kagglehub.login() # This will prompt you for your credentials.
+
+    # Define e carrega o modelo de embeddings
+    MODEL_PATH = kagglehub.model_download("google/embeddinggemma/transformers/embeddinggemma-300m")
+    model = SentenceTransformer(MODEL_PATH)
     
-    if resultado[0] is not None:
-        print("\n" + "=" * 60)
-        print("SIMILARIDADES CALCULADAS COM SUCESSO!")
-        print("=" * 60)
-    else:
-        print("\nFalha ao calcular similaridades.")
-        return 1
+    descricao = []
+    classe = []
+    for item in items:
+        # suporta dicts e objetos
+        desc = item.get('nome_item') if isinstance(item, dict) else getattr(item, 'nome_item', None)
+        cl = item.get('classe_item') if isinstance(item, dict) else getattr(item, 'classe_item', None)
+        if desc:
+            descricao.append(desc)
+            classe.append(cl)
     
-    return 0
+    if not descricao:
+        print("Nenhuma descrição de item encontrada")
+        return []
 
+    print(f"Gerando embeddings para {len(descricao)} itens...")
+    # Gera embeddings para todas as descrições
+    embeddings = model.encode(descricao, show_progress_bar=True)
+    print("Embeddings gerados.")
+    
+    # Cria array de similaridades na mesma estrutura de processar_itens
+    resultado_itens = []
+    
+    for i in range(len(embeddings)):
+        print(f"Processando item {i+1} de {len(embeddings)}...")
+        
+        # Array de comparações deste item com todos os outros
+        similaridades_item = []
+        
+        for j in range(len(embeddings)):
+            # Verifica se as descrições são distintas
+            # Calcula similaridade de cosseno entre os embeddings
+            similaridade = float(model.similarity(embeddings[i], embeddings[j]))
+            
+            similaridades_item.append({
+                'indice': j,
+                'item': descricao[j],
+                'classe': classe[j],
+                'similaridade': similaridade
+            })
+        
+        # Adiciona item com suas similaridades
+        resultado_itens.append({
+            'indice': i,
+            'item': descricao[i],
+            'classe': classe[i],
+            'similaridade': similaridades_item
+        })
 
-if __name__ == "__main__":
-    exit(main())
+    if salvar_json:
+        # Salva o array em formato JSON num arquivo legível
+        resultado = {
+            'total_itens': len(descricao),
+            'itens': resultado_itens
+        }
+        
+        with open(f"../json/array_similaridade_gemma_{int(similaridade_min * 100)}_porcento.json", "w", encoding="utf-8") as f:
+            json.dump(resultado, f, ensure_ascii=False, indent=2)
+
+        print(f"Array de Similaridade Gemma Calculado e salvo no arquivo: json/array_similaridade_gemma_{int(similaridade_min * 100)}_porcento.json")
+    
+    return resultado_itens
