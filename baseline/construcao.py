@@ -9,7 +9,33 @@ def carregar_itens():
     try:
         with open(json_path, 'r', encoding='utf-8') as f:
             dados = json.load(f)
-        return dados.get('licitacoes_publicas', [])
+        
+        licitacoes = dados.get('licitacoes_publicas', {})
+        itens = []
+        
+        # Extrai itens de cada categoria
+        for categoria, items_dict in licitacoes.items():
+            for nome_item, caracteristicas in items_dict.items():
+                item = {
+                    'nome_item': nome_item,
+                    'classe_item': categoria,
+                    'caracteristica1': {'nome': 'caracteristica1', 'opcoes': []},
+                    'caracteristica2': {'nome': 'caracteristica2', 'opcoes': []},
+                    'caracteristica3': {'nome': 'caracteristica3', 'opcoes': []}
+                }
+                
+                # Mapeia as características
+                cara_keys = list(caracteristicas.keys())
+                for idx, key in enumerate(cara_keys[:3]):  # Pega até 3 características
+                    cara_num = f'caracteristica{idx + 1}'
+                    item[cara_num] = {
+                        'nome': key,
+                        'opcoes': caracteristicas[key] if isinstance(caracteristicas[key], list) else []
+                    }
+                
+                itens.append(item)
+        
+        return itens
     except FileNotFoundError:
         print(f"Erro: Arquivo {json_path} não encontrado")
         return []
@@ -267,20 +293,20 @@ def comparar_arrays(threshold=0.7):
     }
 
 if __name__ == '__main__':
-    # print("="*60)
-    # print("ETAPA 1: Criando itens complexos...")
-    # print("="*60)
-    # criar_itens()
+    print("="*60)
+    print("ETAPA 1: Criando itens complexos...")
+    print("="*60)
+    criar_itens()
     
-    # print("\n" + "="*60)
-    # print("ETAPA 2: Processando itens e gerando baseline de similaridade...")
-    # print("="*60 + "\n")
-    # processar_itens()
+    print("\n" + "="*60)
+    print("ETAPA 2: Processando itens e gerando baseline de similaridade...")
+    print("="*60 + "\n")
+    processar_itens()
     
-    # print("\n" + "="*60)
-    # print("ETAPA 3: Calculando similaridades com Gemma Embeddings...")
-    # print("="*60 + "\n")
-    # similaridadeBase.similaridades_baseline(similaridade_min=0.7, salvar_json=True)
+    print("\n" + "="*60)
+    print("ETAPA 3: Calculando similaridades com Gemma Embeddings...")
+    print("="*60 + "\n")
+    similaridadeBase.similaridades_baseline(similaridade_min=0.7, salvar_json=True)
     
     print("\n" + "="*60)
     print("ETAPA 4: Comparando resultados baseline vs Gemma...")
