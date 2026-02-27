@@ -180,7 +180,7 @@ def comparar_arrays(threshold=0.7):
     """
     # Carrega os dois arrays
     baseline_path = os.path.join(os.path.dirname(__file__), '../json/array_similaridade_complexos.json')
-    gemma_path = os.path.join(os.path.dirname(__file__), '../json/array_similaridade_gemma_70_porcento.json')
+    gemma_path = os.path.join(os.path.dirname(__file__), '../json/array_similaridade_gemma.json')
     
     try:
         with open(baseline_path, 'r', encoding='utf-8') as f:
@@ -279,18 +279,43 @@ def comparar_arrays(threshold=0.7):
     
     print("="*60)
     
-    return {
+    # Create results dictionary with threshold
+    resultado = {
+        'threshold': round(threshold *100, 2),
         'vp': vp,
         'fp': fp,
         'vn': vn,
         'fn': fn,
-        'acuracia': acuracia,
-        'precisao': precisao,
-        'recall': recall,
-        'f1': f1,
-        'mae': mae,
+        'acuracia': round(acuracia * 100, 2),
+        'precisao': round(precisao * 100, 2),
+        'recall': round(recall * 100, 2),
+        'f1': round(f1 * 100, 2),
+        'mae': round(mae * 100, 2),
         'rmse': rmse
     }
+
+    # Load existing results or create new list
+    resultados_path = os.path.join(os.path.dirname(__file__), '../json/resultados.json')
+    resultados = []
+
+    try:
+        with open(resultados_path, 'r', encoding='utf-8') as f:
+            resultados = json.load(f)
+    except FileNotFoundError:
+        resultados = []
+
+    # Append new result
+    resultados.append(resultado)
+
+    # Save to file
+    try:
+        with open(resultados_path, 'w', encoding='utf-8') as f:
+            json.dump(resultados, f, ensure_ascii=False, indent=2)
+        print(f"Resultados salvos em: {resultados_path}")
+    except IOError as e:
+        print(f"Erro ao salvar resultados: {e}")
+    
+    
 
 if __name__ == '__main__':
     print("="*60)
@@ -306,9 +331,12 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("ETAPA 3: Calculando similaridades com Gemma Embeddings...")
     print("="*60 + "\n")
-    similaridadeBase.similaridades_baseline(similaridade_min=0.7, salvar_json=True)
-    
+    similaridadeBase.similaridades_baseline(salvar_json=True)
+
+    threshold = 0.7
+    # while threshold <= 1:
+    # threshold += 0.05
     print("\n" + "="*60)
-    print("ETAPA 4: Comparando resultados baseline vs Gemma...")
+    print(f"ETAPA 4: Comparando resultados baseline vs Gemma com threshold {threshold}...")
     print("="*60 + "\n")
-    comparar_arrays(threshold=0.7)
+    comparar_arrays(threshold)

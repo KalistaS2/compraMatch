@@ -4,3 +4,6 @@ kagglehub
 networkx
 flask
 scikit-learn
+openai
+google-genai
+python-dotenv
