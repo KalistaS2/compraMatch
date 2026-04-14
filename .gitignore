@@ -9,3 +9,5 @@ kaggle.json
 *.pyc
 *.json
 *.gpickle
+
+.env

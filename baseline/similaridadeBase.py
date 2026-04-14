@@ -1,10 +1,12 @@
 import kagglehub
 import json
+import os
 from sentence_transformers import SentenceTransformer
 from construcao import carregar_itens_complexos
+json_path = os.path.join(os.path.dirname(__file__), '../json/itensSinteticos.json')
 
 
-def similaridades_baseline(similaridade_min=0.7, salvar_json=True):
+def similaridades_baseline(salvar_json=True):
     """
     Calcula similaridades usando Gemma Embeddings. `items_source` pode ser:
       - None => os itens serão carregados de itens_complexos.json usando carregar_itens_complexos()
@@ -78,9 +80,11 @@ def similaridades_baseline(similaridade_min=0.7, salvar_json=True):
             'itens': resultado_itens
         }
         
-        with open(f"../json/array_similaridade_gemma_{int(similaridade_min * 100)}_porcento.json", "w", encoding="utf-8") as f:
+        output_path = os.path.join(os.path.dirname(__file__), '../json/array_similaridade_gemma.json')
+         
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(resultado, f, ensure_ascii=False, indent=2)
 
-        print(f"Array de Similaridade Gemma Calculado e salvo no arquivo: json/array_similaridade_gemma_{int(similaridade_min * 100)}_porcento.json")
+        print(f"Array de Similaridade Gemma Calculado e salvo no arquivo: json/array_similaridade_gemma.json")
     
     return resultado_itens
