@@ -216,11 +216,13 @@ def comparar_arrays(threshold=0.7):
             elif baseline_similar == 0 and gemma_similar == 0:
                 vn += 1  # Ambos dizem que não é similar - VN
             elif baseline_similar == 1 and gemma_similar == 0:
+                print("falso similar: ", baseline_sims[i]['item'], " + ", gemma_sims[j]['item'], "similaridade gemma: ", gemma_sims[j]['similaridade'])
                 fn += 1  # Baseline diz similar, Gemma diz não similar - FN
+                print("-"*60)
     
     # Calcula métricas
     total = vp + fp + vn + fn
-    acuracia = (vp + vn) / total if total > 0 else 0
+    acuracia = (vp + vn) / (vp + fp + vn + fn) if total > 0 else 0
     precisao = vp / (vp + fp) if (vp + fp) > 0 else 0
     recall = vp / (vp + fn) if (vp + fn) > 0 else 0
     f1 = 2 * (precisao * recall) / (precisao + recall) if (precisao + recall) > 0 else 0
@@ -285,4 +287,4 @@ if __name__ == '__main__':
     print("\n" + "="*60)
     print("ETAPA 4: Comparando resultados baseline vs Gemma...")
     print("="*60 + "\n")
-    comparar_arrays(threshold=0.7)
+    comparar_arrays(threshold=0)

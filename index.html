@@ -472,6 +472,105 @@
       color: white;
     }
 
+    /* ===== NEWS ===== */
+    .news {
+      background: var(--background);
+    }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 24px;
+    }
+
+    .news-card {
+      background: var(--card);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .news-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-elevated);
+    }
+
+    .news-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      background: var(--secondary);
+    }
+
+    .news-video-container {
+      width: 100%;
+      padding-bottom: 56.25%;
+      position: relative;
+      background: var(--secondary);
+      height: 0;
+    }
+
+    .news-video-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .news-content {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .news-source {
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 12px;
+    }
+
+    .news-title {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+      color: var(--foreground);
+      flex: 1;
+    }
+
+    .news-description {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .news-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: gap 0.3s ease;
+    }
+
+    .news-link:hover {
+      gap: 12px;
+    }
+
+    .news-link svg {
+      width: 16px;
+      height: 16px;
+    }
+
     /* ===== AWARDS ===== */
     .awards {
       background: var(--primary);
@@ -773,6 +872,10 @@
       .gallery-grid {
         grid-template-columns: 1fr;
       }
+
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
     }
     /* ===== GALLERY MODAL ===== */
     .modal-overlay {
@@ -921,6 +1024,63 @@
           <div class="stat-item">
             <div class="stat-value gradient-text">Python</div>
             <div class="stat-label">Tecnologia</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== NEWS ===== -->
+  <section class="section news" id="news">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-label">Mídia</span>
+        <h2 class="section-title">Notícias & Cobertura</h2>
+        <p class="section-subtitle">ComprasMatch na imprensa e mídia especializada</p>
+      </div>
+
+      <div class="news-grid">
+        <!-- News 1: G1 -->
+        <div class="card news-card">
+          <img src="https://s2-g1.glbimg.com/s04kt3bDwo03GU_fGcSo2vl8V8c=/0x136:768x745/600x0/smart/filters:gifv():strip_icc()/i.s3.glbimg.com/v1/AUTH_59edd422c0c84a879bd37670ae4f538a/internal_photos/bs/2026/a/L/tNgFzTQJWMF3DhDzgjPg/whatsapp-image-2026-03-28-at-17.27.45.jpeg" alt="Projeto de pesquisadores da UERR que usa IA para reduzir gastos públicos é apresentado nos EUA" class="news-image">
+          <div class="news-content">
+            <span class="news-source">G1 Roraima</span>
+            <h3 class="news-title">Projeto de pesquisadores da UERR que usa IA para reduzir gastos públicos é apresentado nos EUA</h3>
+            <p class="news-description">O projeto ComprasMatch, desenvolvido por pesquisadores da UERR, foi apresentado nos Estados Unidos com foco em redução de gastos públicos através de Inteligência Artificial.</p>
+            <a href="https://g1.globo.com/google/amp/rr/roraima/noticia/2026/04/01/projeto-de-pesquisadores-da-uerr-que-usa-ia-para-reduzir-gastos-publicos-e-apresentado-nos-eua.ghtml" target="_blank" rel="noopener noreferrer" class="news-link">
+              Leia a notícia
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- News 2: Folha BV -->
+        <div class="card news-card">
+          <img src="index/folha_bv_news.png" alt="Projeto criado em Roraima que usa IA para enfrentar desperdício de dinheiro público será apresentado em Boston" class="news-image">
+          <div class="news-content">
+            <span class="news-source">Folha BV</span>
+            <h3 class="news-title">Projeto criado em Roraima que usa IA para enfrentar desperdício de dinheiro público será apresentado em Boston</h3>
+            <p class="news-description">ComprasMatch será apresentado em Boston como uma solução inovadora para combater o desperdício de recursos públicos usando tecnologias de IA.</p>
+            <a href="https://www.folhabv.com.br/educacao/projeto-criado-em-roraima-que-usa-ia-para-enfrentar-desperdicio-de-dinheiro-publico-sera-apresentado-em-boston/#goog_rewarded" target="_blank" rel="noopener noreferrer" class="news-link">
+              Leia a notícia
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <!-- News 3: Defensoria Pública - YouTube Video -->
+        <div class="card news-card">
+          <div class="news-video-container">
+            <iframe src="https://www.youtube.com/embed/tmRf5ZbPr-c" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+          </div>
+          <div class="news-content">
+            <span class="news-source">Defensoria Pública de Roraima</span>
+            <h3 class="news-title">Ferramenta analisa compras públicas e sugere economia</h3>
+            <p class="news-description">Entrevista na Defensoria Pública de Roraima sobre a ferramenta ComprasMatch e seus benefícios para análise e economia em compras públicas.</p>
+            <a href="https://www.youtube.com/watch?v=tmRf5ZbPr-c" target="_blank" rel="noopener noreferrer" class="news-link">
+              Assistir no YouTube
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </a>
           </div>
         </div>
       </div>
@@ -1077,6 +1237,7 @@
           <h4>Quick Links</h4>
           <nav>
             <a href="#about">Sobre o Projeto</a>
+            <a href="#news">Notícias</a>
             <a href="#team">Nossa Equipe</a>
             <a href="#gallery">Galeria</a>
             <a href="#awards">Prêmios</a>
