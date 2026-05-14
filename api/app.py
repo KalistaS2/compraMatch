@@ -8,8 +8,8 @@ app = Flask(__name__, template_folder='../templates', static_folder='../static')
 
 # Caminhos dos arquivos (relativos ao diretório api)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-ITENS_FILE = os.path.join(PROJECT_ROOT, 'itens.json')
-GRAFO_FILE = os.path.join(PROJECT_ROOT, 'grafo_Similaridade_90_porcento.gpickle')
+ITENS_FILE = os.path.join(PROJECT_ROOT, 'json/itens.json')
+GRAFO_FILE = os.path.join(PROJECT_ROOT, 'grafo_Similaridade_70.gexf')
 
 def load_items_from_json(path=ITENS_FILE):
     """Carrega itens do arquivo JSON."""

@@ -12,7 +12,7 @@ except Exception:
     nx = None
     _HAS_NETWORKX = False
 
-def _load_items_from_json(path="itens.json"):
+def _load_items_from_json(path="json/itens.json"):
     """Carrega itens do arquivo JSON `itens.json`.
 
     O arquivo é esperado no formato em que `requisicaoApi.request` grava: cada linha

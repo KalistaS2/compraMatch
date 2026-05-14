@@ -1,5 +1,8 @@
 import json
 import os
+import pickle
+import unicodedata
+import networkx as nx
 import similaridadeBase
 # Caminho para o arquivo JSON
 json_path = os.path.join(os.path.dirname(__file__), '../json/itensSinteticos.json')
@@ -342,3 +345,4 @@ if __name__ == '__main__':
     print(f"ETAPA 4: Comparando resultados baseline vs Gemma com threshold {threshold}...")
     print("="*60 + "\n")
     comparar_arrays(threshold)
+

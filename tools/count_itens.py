@@ -1,5 +1,5 @@
 import json
-p = 'itens.json'
+p = 'json/itens.json'
 try:
     with open(p, 'r', encoding='utf-8') as f:
         s = f.read()
