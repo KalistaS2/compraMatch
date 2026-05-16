@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import pickle
 import unicodedata
 import networkx as nx
 from pathlib import Path
@@ -11,7 +12,8 @@ import community.community_louvain as community_louvain
 
 
 ITENS_PATH = Path(__file__).resolve().parents[1] / "json" / "itens.json"
-GRAFO_PATH = Path(__file__).resolve().parents[1] / "grafo_Similaridade_70.gexf"
+GRAFO_GPKL_PATH = Path(__file__).resolve().parents[1] / "grafo_Similaridade_70_porcento.gpickle"
+GRAFO_GEXF_PATH = Path(__file__).resolve().parents[1] / "grafo_Similaridade_70.gexf"
 
 def _normalize_text(valor: str) -> str:
 	"""Normaliza texto para comparação: remove acentos e faz casefold.
@@ -32,6 +34,22 @@ def _normalize_words(valor: str) -> list[str]:
 	return [palavra for palavra in texto_normalizado.split() if palavra]
 
 
+def _carregar_grafo_louvain() -> tuple[nx.Graph, dict[str, int]]:
+	"""Carrega o grafo e calcula a partição Louvain sobre sua versão não direcionada."""
+	if GRAFO_GPKL_PATH.exists():
+		with GRAFO_GPKL_PATH.open("rb") as arquivo:
+			grafo = pickle.load(arquivo)
+	elif GRAFO_GEXF_PATH.exists():
+		grafo = nx.read_gexf(str(GRAFO_GEXF_PATH))
+	else:
+		raise FileNotFoundError(
+			f"Não foi possível encontrar o grafo em {GRAFO_GPKL_PATH} nem em {GRAFO_GEXF_PATH}"
+		)
+	grafo_und = grafo.to_undirected() if hasattr(grafo, "to_undirected") else grafo
+	particao = community_louvain.best_partition(grafo_und, weight="weight", random_state=42)
+	return grafo, particao
+
+
 def encontrar_itens(termo: str, salvar_em: Path | str) -> list[dict[str, Any]]:
 	"""Retorna os itens cujo campo de descrição do nó do grafo contenha o termo.
 
@@ -46,7 +64,7 @@ def encontrar_itens(termo: str, salvar_em: Path | str) -> list[dict[str, Any]]:
 	if not palavras_termo:
 		return []
 
-	grafo = nx.read_gexf(str(GRAFO_PATH))
+	grafo, _ = _carregar_grafo_louvain()
 
 	resultados: list[dict[str, Any]] = []
 	vistos: set[tuple[str, str]] = set()
@@ -76,23 +94,23 @@ def encontrar_itens(termo: str, salvar_em: Path | str) -> list[dict[str, Any]]:
 
 
 def contagem_cluster(termo: str, salvar_em: str | Path | None = None) -> tuple[int, dict[str, Any]]:
-	"""Encontra o cluster formado pelos nós que contêm o termo e seus vizinhos (1-hop).
+	"""Encontra o cluster Louvain que contém os nós que batem com o termo.
 
-	Esse comportamento limita o cluster ao conjunto de nós que explícita e diretamente
-	correspondem ao termo de busca e aos seus vizinhos imediatos, evitando expansão
-	transitiva por componentes maiores.
+	A busca localiza os nós cuja descrição contém o termo, calcula a partição
+	Louvain no grafo inteiro e retorna o cluster formado por todas as comunidades
+	associadas aos nós encontrados.
 
-	Retorna uma tupla (quantidade_nos, dados_cluster).
+	Retorna uma tupla (quantidade_nos, dados_cluster), em que a quantidade reflete
+	os nós únicos incluídos no cluster final.
 	"""
 	palavras_termo = _normalize_words(termo)
 	if not palavras_termo:
 		return 0, {}
 
-	# Carrega grafo
-	grafo = nx.read_gexf(str(GRAFO_PATH))
+	grafo, particao = _carregar_grafo_louvain()
 
 	# Encontra nós cuja descrição contém o termo
-	nos_encontrados = []
+	nos_encontrados: list[str] = []
 	for node_id, atributos in grafo.nodes(data=True):
 		descricao = atributos.get("descricao", "")
 		descricao_normalizada = _normalize_text(descricao)
@@ -102,17 +120,17 @@ def contagem_cluster(termo: str, salvar_em: str | Path | None = None) -> tuple[i
 	if not nos_encontrados:
 		return 0, {}
 
-	# Cluster = nós encontrados + seus vizinhos imediatos (1-hop)
-	cluster_nodes = set(nos_encontrados)
-	for node_id in list(nos_encontrados):
-		for viz in grafo.neighbors(node_id):
-			cluster_nodes.add(viz)
+	# Identifica as comunidades Louvain tocadas pelos nós encontrados
+	comunidades_alvo = {particao[node_id] for node_id in nos_encontrados if node_id in particao}
+	cluster_nodes = {
+		node_id
+		for node_id, comunidade in particao.items()
+		if comunidade in comunidades_alvo
+	}
 
-	# Constrói dados do cluster com item e suas conexões (apenas para nós em cluster_nodes)
-	# Deduplicar: não aceitar mais de um nó com a mesma (orgao, descricao)
+	# Constrói dados do cluster apenas com nós incluídos e com conexões filtradas
 	seen_pairs: set[tuple[str, str]] = set()
-	included_nodes: set[str] = set()
-
+	included_nodes: list[str] = []
 	for node_id in cluster_nodes:
 		atributos = grafo.nodes[node_id]
 		descr = atributos.get("descricao", "")
@@ -121,16 +139,16 @@ def contagem_cluster(termo: str, salvar_em: str | Path | None = None) -> tuple[i
 		if key in seen_pairs:
 			continue
 		seen_pairs.add(key)
-		included_nodes.add(node_id)
+		included_nodes.append(node_id)
 
-	# Agora constrói dados do cluster apenas com nós incluídos e com conexões filtradas
-	dados_cluster = {}
+	dados_cluster: dict[str, Any] = {}
 	for node_id in included_nodes:
 		atributos = grafo.nodes[node_id]
 		vizinhos = [
 			{
 				"id": vizinho_id,
-				"descricao": grafo.nodes[vizinho_id].get("descricao", "")
+				"descricao": grafo.nodes[vizinho_id].get("descricao", ""),
+				"orgao": grafo.nodes[vizinho_id].get("orgao", ""),
 			}
 			for vizinho_id in grafo.neighbors(node_id)
 			if vizinho_id in included_nodes
@@ -139,48 +157,25 @@ def contagem_cluster(termo: str, salvar_em: str | Path | None = None) -> tuple[i
 			"item": atributos.get("descricao", ""),
 			"orgao": atributos.get("orgao", ""),
 			"data": atributos.get("data", ""),
-			"conexoes": vizinhos
+			"comunidade": str(particao.get(node_id, "")),
+			"conexoes": vizinhos,
 		}
 
-	# Detecta comunidades dentro do subgrafo restrito aos nós incluídos
-	try:
-		subgrafo = grafo.subgraph(included_nodes).copy()
-		# community_louvain espera grafos não direcionados em geral
-		if hasattr(subgrafo, "to_undirected"):
-			subgrafo_und = subgrafo.to_undirected()
-		else:
-			subgrafo_und = subgrafo
+	comunidades: dict[str, list[dict[str, str]]] = {}
+	for nodo in included_nodes:
+		com_id = str(particao.get(nodo, ""))
+		comunidades.setdefault(com_id, []).append({
+			"id": nodo,
+			"descricao": grafo.nodes[nodo].get("descricao", ""),
+			"orgao": grafo.nodes[nodo].get("orgao", ""),
+		})
 
-		particao = community_louvain.best_partition(subgrafo_und)
-
-		# Agrupa nós por comunidade
-		comunidades: dict[str, list[dict[str, str]]] = {}
-		for nodo, comm in particao.items():
-			com_id = str(comm)
-			comunidades.setdefault(com_id, []).append({
-				"id": nodo,
-				"descricao": grafo.nodes[nodo].get("descricao", ""),
-				"orgao": grafo.nodes[nodo].get("orgao", "")
-			})
-
-		# Anexa informações de comunidades aos dados do cluster
-		dados_cluster["comunidades"] = comunidades
-
-		# Exibe comunidades no stdout
-		print("Comunidades detectadas:")
-		for com_id, membros in comunidades.items():
-			print(f"  Comunidade {com_id}: {len(membros)} membros")
-			for m in membros:
-				print(f"    - {m['id']}: {m['descricao']} ({m['orgao']})")
-
-	except Exception as e:
-		# Se houver falha na detecção de comunidades, registre no JSON e prossiga
-		dados_cluster["comunidades_error"] = str(e)
+	dados_cluster["comunidades"] = comunidades
 
 	# Salva em JSON se especificado (ou padrão)
 	if salvar_em is None:
 		salvar_em = ITENS_PATH.parent / f"cluster_{_normalize_text(termo).replace(' ', '_')}.json"
-    
+
 	destino = Path(salvar_em)
 	destino.parent.mkdir(parents=True, exist_ok=True)
 	with destino.open("w", encoding="utf-8") as f:
@@ -200,18 +195,18 @@ def listar_descricoes_cluster(dados_cluster: dict[str, Any], termo: str, salvar_
 	Returns:
 	    Lista de descrições únicas dos nós
 	"""
-	# Usa dict.fromkeys para manter ordem e remover duplicatas
+	# Usa apenas os nós do cluster, ignorando metadados como 'comunidades'
 	descricoes_unicas = list(dict.fromkeys(
 		item_data.get("item", "")
-		for item_data in dados_cluster.values()
-		if item_data.get("item", "")
+		for chave, item_data in dados_cluster.items()
+		if chave != "comunidades" and isinstance(item_data, dict) and item_data.get("item", "")
 	))
 
 	# Salva em JSON se houver dados
 	if descricoes_unicas:
 		if salvar_em is None:
 			salvar_em = ITENS_PATH.parent / f"descricoes_{_normalize_text(termo).replace(' ', '_')}.json"
-		
+
 		destino = Path(salvar_em)
 		destino.parent.mkdir(parents=True, exist_ok=True)
 		with destino.open("w", encoding="utf-8") as f:
